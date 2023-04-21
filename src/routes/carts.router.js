@@ -1,89 +1,107 @@
 const express = require('express');
 const router = express.Router();
 const uploader = require('../utils')
+const fs = require('fs');
 
 
 class CartManager{
-    constructor(path){
+    constructor(path) {
         this.path = path;
         this.lastId = 0;
-        this.arr = [];        
+        this.array = [];
+    }
+
+    refreshArray = async () => {
+        const rescate = await fs.promises.readFile(this.path, 'utf-8');
+        this.array = (JSON.parse(rescate))
+        for (let i = 0; i < this.array.length; i++) {
+            if (this.array[i].id > this.lastId) {
+                this.lastId = this.array[i].id
+            }
         }
+    }
+
+    async addCart(prods) {
+        await this.refreshArray();
+
+        const newCart = {
+            id: ++this.lastId,
+            items: [prods]
+        }
+        this.array.push(newCart)
+        const cadenaCart = JSON.stringify(this.array);
+        await fs.promises.writeFile(this.path, cadenaCart)
+
+        return newCart
+    }
+
+
+    getCartById = async (id) => {
+        await this.refreshArray();
+        const cart = this.array.find(cart => cart.id === id);
+        
+        console.log(cart.items)
+        if (cart) {
+            return (cart)
+        } else {
+            return (`ID ${id} Not found`);
+        }
+    }
+
+
+    addToCart = async (cid,pid) => {
+        await this.refreshArray();
+        const cart = this.array.find(cart => cart.id == cid);
+        const indexBuscado = this.array.indexOf(cart)
+        let made = false;
+        console.log('cart before: ',cart.items)
+        for(let i=0 ; i< cart.items.length ; i++ ){
+            if(cart.items[i].id == pid){cart.items[i].quantity = cart.items[i].quantity+1; made=true} 
+            
+        }
+        if (made==false){cart.items.push({id:pid,quantity:1})} 
+        
+        console.log('cart after: ',cart.items)
+        this.array.splice(indexBuscado,1,cart);
+        const newArrayStringuiseado = JSON.stringify(this.array);
+        await fs.promises.writeFile(this.path,newArrayStringuiseado);
+        console.log(`Se ha agregado correctamente el producto ${pid} al cart nro ${cid}`)
+    }
+
+}
+
+
+const cart1 = new CartManager('./carrito.json');
+cart1.refreshArray();
+//cart1.addCart({id:1,quantity:2})
+
+
+
+
+
+
+
+router.post('/', async (req, res) => {
+    const objBody = req.body;
+    await cart1.addCart(objBody)
+    res.status(200).send("ok")
+})
+
+
+router.get('/:cid', (req, res) => {
+    cid = parseInt(req.params.cid)
+    cart1.getCartById(cid);
+
+    res.status(200).send("ok")
+})
+
+
+
+router.post('/:cid/product/:pid', (req, res) => {
+    const cid = parseInt(req.params.cid);
+    const pid = parseInt(req.params.pid);
     
-refreshArray = async()=>{
-    const rescate = await fs.promises.readFile(this.path,'utf-8');
-    this.arr = (JSON.parse(rescate))
-    for(let i=0; i<this.arr.length; i++){if(this.arr[i].id > this.lastId){this.lastId = this.arr[i].id}}
-    }
-
-addCart = async(prods)=>{
-await this.refreshArray();
-
-const newCart = 
-        {
-    id: ++this.lastId,
-    items: [prods]
-
-}
-this.arr.push(newProduct)
-const cadenaCart = JSON.stringify(this.arr);
-await fs.promises.writeFile(this.path,cadenaCart)
-
-return newProduct
-}}
-
-
-getCartById = async(id) => {
-await this.refreshArray();
-const product = this.arr.find(product => product.id === id);
-if (product) {
-  return(product)
-} else {
-  return(`ID ${id} Not found`);
-}
-}
-
-
-addToCart = async (id) => {
-await this.refreshArray();
-
-for(let i=0;i<this.arr.length;i++){
-    if(this.arr[i].id === id){
-        return this.arr.lastIndexOf(this.arr[i])
-    }
-}
-
- 
-
-}
-
-
-
-
-const cart = new CartManager('./carrito.json');
-
-
-
-
-
-
-
-
-router.post('/',(req,res)=>{
-    cart.addCart()
-    res.status(200).send("ok")
-})
-
-
-router.get('/:cid',(req,res)=>{
-    cart.getCartById(req.params.cid);
-    res.status(200).send("ok")
-})
-
-
-
-router.post('/:cid/product/:pid',(req,res)=>{
-    cart.addToCart(req.params.cid,req.params.pid);
+    cart1.addToCart(cid, pid);
     res.status(200).send("ok")
 })
 
