@@ -67,6 +67,11 @@ getProductById = async(id) => {
 getIndexById = async (id) => {
     await this.refreshArray();
     
+    for(let i=0;i<this.arr.length;i++){
+        if(this.arr[i].id === id){
+            return this.arr.lastIndexOf(this.arr[i])
+        }
+    }
     
      
     
@@ -75,35 +80,36 @@ getIndexById = async (id) => {
 updateProduct = async(id,field,nuevo) => {
     await this.refreshArray();
     const product = this.arr.find(product => product.id === id);
-    if (product) {
+    if (product && nuevo!==product[field]) {
         const datoAnterior = product[field] //Se almacena el campo antes de modificarlo, para luego poder mostrar en consola cuál fue el cambio realizado.
-        const indexBuscado = datosObj.indexOf(product) //Sabemos que index es el producto        
+        const indexBuscado = this.arr.indexOf(product) //Sabemos que index es el producto        
         product[field] = nuevo; //Se reemplaza el campo deseado por el nuevo pasado como parámetro
-        datosObj.splice(indexBuscado,1,product) // Se reemplaza en el array original el objeto modificado
-        const datosObjNewStringuiseado = JSON.stringify(datosObj); //Se convierte a string
+        this.arr.splice(indexBuscado,1,product) // Se reemplaza en el array original el objeto modificado
+        const datosObjNewStringuiseado = JSON.stringify(this.arr); //Se convierte a string
         await fs.promises.writeFile(this.path,datosObjNewStringuiseado) // se escribe el nuevo JSON
         console.log(`Se ha cambiado el ${field} de ${datoAnterior} por ${nuevo}`) //Se informa el cambio realizado
 
 
 
     } else {
-      console.log("ID Not found");
+      console.log("ID no encontrado, o el valor ingresado ya es el actual");
     }
 }
 
 deleteProduct = async(id) => {
 
-    const datos = await fs.promises.readFile(this.path,'utf-8');
-    const datosObj = JSON.parse(datos);
-    const product = datosObj.find(product => product.id === id);
+    await this.refreshArray();
+    //const datos = await fs.promises.readFile(this.path,'utf-8');
+    //const datosObj = JSON.parse(datos);
+    const product = this.arr.find(product => product.id === id);
 
     if(product){
-    const indexBuscado = datosObj.indexOf(product) //Sabemos que index es el producto
-    datosObj.splice(indexBuscado,1) //Se elimina el producto del array original
+    const indexBuscado = this.arr.indexOf(product) //Sabemos que index es el producto
+    this.arr.splice(indexBuscado,1) //Se elimina el producto del array original
     
-    const datosObjNewStringuiseado = JSON.stringify(datosObj); //Se convierte a string
+    const datosObjNewStringuiseado = JSON.stringify(this.arr); //Se convierte a string
     await fs.promises.writeFile(this.path,datosObjNewStringuiseado) //Se escribe el nuevo JSON
-    console.log('El producto fue eliminado correctamente') //Mensaje informativo
+    console.log(`El producto ${product.title}fue eliminado correctamente`) //Mensaje informativo
     }
 
 
@@ -121,7 +127,7 @@ const manager = new ProductManager('./productos.json');
 
 
 manager.refreshArray();
-manager.getIndexById(2);
+
 
 
 
@@ -162,20 +168,23 @@ router.post('/',async (req,res)=>{
 router.put('/:id',async (req,res)=>{
 
 const objBody = req.body;
-idBuscado = parseInt(req.params.id)
-//console.log(manager.this.arr.indexOf(await manager.getProductById(idBuscado)))
+let idBuscado = parseInt(req.params.id)
 
-
-
-
-//for(let i = 0;i<objBody.length)
-    //manager.updateProduct(req.params.id,)
-
-    res.status(200).send("ok")
+for (let i = 0; i<Object.keys(objBody).length;i++){
+    async function actualizar() { 
+    const ref = await manager.updateProduct(idBuscado,Object.keys(objBody)[i],Object.values(objBody)[i])
+    }
+    actualizar()
+}
+res.status(200).send("ok")
 })
 
-console.log(manager.getProducts())
 
 
+router.delete('/:id',async(req,res)=>{
+    const idBuscado = parseInt(req.params.id)
+    manager.deleteProduct(idBuscado)
+    res.status(200).send("Deleted ok")
+})
 
 module.exports = router;
