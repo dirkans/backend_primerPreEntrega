@@ -30,10 +30,10 @@
     "category": "fuels"
 }, {
     "id": 4,
-    "title": "Diesel Premium",
+    "title": "Diesel Infisnia",
     "description": "Diesel Premium sin azufre",
-    "price": 292,
-    "thumbnail": "diesel.png",
+    "price": 32210,
+    "thumbnail": "pictures1.png",
     "code": "euro",
     "stock": 500000,
     "status": true,

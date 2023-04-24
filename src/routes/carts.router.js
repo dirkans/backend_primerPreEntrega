@@ -31,7 +31,7 @@ class CartManager{
         this.array.push(newCart)
         const cadenaCart = JSON.stringify(this.array);
         await fs.promises.writeFile(this.path, cadenaCart)
-
+        console.log(newCart.id)
         return newCart
     }
 
@@ -40,11 +40,13 @@ class CartManager{
         await this.refreshArray();
         const cart = this.array.find(cart => cart.id === id);
         
-        console.log(cart.items)
+        
         if (cart) {
+            console.log(cart.items)
             return (cart)
         } else {
-            return (`ID ${id} Not found`);
+            console.log(`ID ${id} Not found`)
+            
         }
     }
 
@@ -88,10 +90,9 @@ router.post('/', async (req, res) => {
 })
 
 
-router.get('/:cid', (req, res) => {
+router.get('/:cid',  (req, res) => {
     cid = parseInt(req.params.cid)
     cart1.getCartById(cid);
-
     res.status(200).send("ok")
 })
 

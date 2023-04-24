@@ -80,20 +80,29 @@ getIndexById = async (id) => {
 updateProduct = async(id,field,nuevo) => {
     await this.refreshArray();
     const product = this.arr.find(product => product.id === id);
-    if (product && nuevo!==product[field]) {
+
+    
+if (product && nuevo!==product[field]) {
         const datoAnterior = product[field] //Se almacena el campo antes de modificarlo, para luego poder mostrar en consola cuál fue el cambio realizado.
         const indexBuscado = this.arr.indexOf(product) //Sabemos que index es el producto        
+        
         product[field] = nuevo; //Se reemplaza el campo deseado por el nuevo pasado como parámetro
+        
         this.arr.splice(indexBuscado,1,product) // Se reemplaza en el array original el objeto modificado
-        const datosObjNewStringuiseado = JSON.stringify(this.arr); //Se convierte a string
+        let datosObjNewStringuiseado = JSON.stringify(this.arr); //Se convierte a string
+        
+
         await fs.promises.writeFile(this.path,datosObjNewStringuiseado) // se escribe el nuevo JSON
-        console.log(`Se ha cambiado el ${field} de ${datoAnterior} por ${nuevo}`) //Se informa el cambio realizado
+
+
+        //console.log(`Se ha cambiado el ${field} de ${datoAnterior} por ${nuevo}`) //Se informa el cambio realizado
 
 
 
     } else {
       console.log("ID no encontrado, o el valor ingresado ya es el actual");
     }
+    
 }
 
 deleteProduct = async(id) => {
@@ -172,10 +181,13 @@ let idBuscado = parseInt(req.params.id)
 
 for (let i = 0; i<Object.keys(objBody).length;i++){
     async function actualizar() { 
-    const ref = await manager.updateProduct(idBuscado,Object.keys(objBody)[i],Object.values(objBody)[i])
+    const paramA = Object.keys(objBody)[i].toString()
+    const ref = await manager.updateProduct(idBuscado,paramA,Object.values(objBody)[i])
     }
     actualizar()
 }
+
+
 res.status(200).send("ok")
 })
 
@@ -186,5 +198,7 @@ router.delete('/:id',async(req,res)=>{
     manager.deleteProduct(idBuscado)
     res.status(200).send("Deleted ok")
 })
+
+
 
 module.exports = router;
