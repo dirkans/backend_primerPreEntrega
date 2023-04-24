@@ -4,7 +4,6 @@ const uploader = require('../utils')
 const fs = require('fs')
 
 
-
 const validarPost =  function(body)  {
     const tempBody = body;
     if (!tempBody.title || tempBody.title == "" || !tempBody.description || tempBody.description == "" || !tempBody.price || tempBody.price == 0 || !tempBody.code || tempBody.code == "" || !tempBody.stock || tempBody.stock == 0 || !tempBody.status || tempBody.status == "" || !tempBody.category || tempBody.category == "" ) {return false} else {return true}}
