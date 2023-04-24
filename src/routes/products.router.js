@@ -92,12 +92,6 @@ if (product && nuevo!==product[field]) {
         
 
         await fs.promises.writeFile(this.path,datosObjNewStringuiseado) // se escribe el nuevo JSON
-
-
-        //console.log(`Se ha cambiado el ${field} de ${datoAnterior} por ${nuevo}`) //Se informa el cambio realizado
-
-
-
     } else {
       console.log("ID no encontrado, o el valor ingresado ya es el actual");
     }
@@ -107,14 +101,10 @@ if (product && nuevo!==product[field]) {
 deleteProduct = async(id) => {
 
     await this.refreshArray();
-    //const datos = await fs.promises.readFile(this.path,'utf-8');
-    //const datosObj = JSON.parse(datos);
     const product = this.arr.find(product => product.id === id);
-
     if(product){
     const indexBuscado = this.arr.indexOf(product) //Sabemos que index es el producto
     this.arr.splice(indexBuscado,1) //Se elimina el producto del array original
-    
     const datosObjNewStringuiseado = JSON.stringify(this.arr); //Se convierte a string
     await fs.promises.writeFile(this.path,datosObjNewStringuiseado) //Se escribe el nuevo JSON
     console.log(`El producto ${product.title}fue eliminado correctamente`) //Mensaje informativo
@@ -181,9 +171,9 @@ let idBuscado = parseInt(req.params.id)
 for (let i = 0; i<Object.keys(objBody).length;i++){
     async function actualizar() { 
     const paramA = Object.keys(objBody)[i].toString()
-    const ref = await manager.updateProduct(idBuscado,paramA,Object.values(objBody)[i])
+    await manager.updateProduct(idBuscado,paramA,Object.values(objBody)[i])
     }
-    actualizar()
+    await actualizar()
 }
 
 
